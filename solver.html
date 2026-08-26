@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Master Vibration Solver | SHEKH AYAN R.</title>
+  <style>
+    :root {
+      --bg: #05070a; --card-bg: #111520; --card-border: #1e2638;
+      --accent: #0ea5e9; --accent-glow: rgba(14, 165, 233, 0.2);
+      --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+      --text: #f8fafc; --text-muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px 12px; min-height: 100vh; }
+    
+    header { width: 100%; max-width: 800px; text-align: center; margin-bottom: 24px; }
+    h1 { font-size: 1.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text); }
+    h1 span { color: var(--accent); }
+    .subtitle { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; letter-spacing: 2px; margin-top: 4px; }
+
+    .dashboard { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 800px; }
+    @media (min-width: 768px) { .dashboard { grid-template-columns: 1fr 1fr; } }
+    
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .card-header { font-size: 1.1rem; color: var(--accent); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+    .card-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
+
+    .input-group { margin-bottom: 12px; }
+    .input-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
+    .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); color: var(--text); padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s; font-family: monospace; }
+    .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+
+    .results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
+    .metric { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); }
+    .metric.highlight { border-color: var(--success); background: rgba(16, 185, 129, 0.05); }
+    .m-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; display: block; }
+    .m-val { font-size: 1.2rem; font-weight: 800; color: var(--text); font-family: monospace; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Universal <span>Solver</span></h1>
+    <div class="subtitle">FREE DAMPED VIBRATION ANALYSIS | SHEKH AYAN R.</div>
+  </header>
+
+  <div class="dashboard">
+    
+    <!-- ENGINE 1: FORWARD ANALYSIS -->
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="card-header">1. Physical Properties Analysis</div>
+      <div class="card-desc">Input known machine components ($m, k, c$) to calculate the complete dynamic behavior of the system.</div>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div class="input-group"><div class="input-label"><span>Mass (m)</span><span>kg</span></div><input type="number" id="fwd-m" class="input-field" value="5.0"></div>
+        <div class="input-group"><div class="input-label"><span>Stiffness (k)</span><span>N/m</span></div><input type="number" id="fwd-k" class="input-field" value="2000"></div>
+        <div class="input-group"><div class="input-label"><span>Damping (c)</span><span>Ns/m</span></div><input type="number" id="fwd-c" class="input-field" value="25"></div>
+      </div>
+
+      <div class="results-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+        <div class="metric"><span class="m-label">Nat. Freq (&omega;_n)</span><span class="m-val" id="res-fwd-wn">0.00</span><span style="font-size:0.7rem;color:#64748b;"> rad/s</span></div>
+        <div class="metric"><span class="m-label">Crit Damping (c_c)</span><span class="m-val" id="res-fwd-cc">0.00</span><span style="font-size:0.7rem;color:#64748b;"> Ns/m</span></div>
+        <div class="metric highlight"><span class="m-label">Damping Ratio (&zeta;)</span><span class="m-val" id="res-fwd-zeta" style="color:var(--accent);">0.00</span></div>
+        <div class="metric"><span class="m-label">Damped Freq (&omega;_d)</span><span class="m-val" id="res-fwd-wd">0.00</span><span style="font-size:0.7rem;color:#64748b;"> rad/s</span></div>
+        <div class="metric"><span class="m-label">Log Decrement (&delta;)</span><span class="m-val" id="res-fwd-delta">0.00</span></div>
+        <div class="metric"><span class="m-label">System Regime</span><span class="m-val" id="res-fwd-regime" style="font-size: 1rem;">Underdamped</span></div>
+      </div>
+    </div>
+
+    <!-- ENGINE 2: EXPERIMENTAL INVERSE -->
+    <div class="card">
+      <div class="card-header">2. Experimental Data Solver</div>
+      <div class="card-desc">Advanced Logarithmic Decrement: Calculate hidden $c$ and $k$ properties using displacement peaks across multiple cycles.</div>
+      
+      <div class="input-group"><div class="input-label"><span>System Mass (m)</span><span>kg</span></div><input type="number" id="inv-m" class="input-field" value="2.0"></div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="input-group"><div class="input-label"><span>Start Peak (X₁)</span><span>mm</span></div><input type="number" id="inv-x1" class="input-field" value="50"></div>
+        <div class="input-group"><div class="input-label"><span>End Peak (Xₙ)</span><span>mm</span></div><input type="number" id="inv-xn" class="input-field" value="12"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="input-group"><div class="input-label"><span>Number of Cycles (n)</span><span>count</span></div><input type="number" id="inv-n" class="input-field" value="3"></div>
+        <div class="input-group"><div class="input-label"><span>Time for n cycles (t)</span><span>sec</span></div><input type="number" id="inv-t" class="input-field" value="1.5"></div>
+      </div>
+
+      <div class="results-grid">
+        <div class="metric"><span class="m-label">Damping Ratio (&zeta;)</span><span class="m-val" id="res-inv-zeta">0.00</span></div>
+        <div class="metric"><span class="m-label">Nat. Freq (&omega;_n)</span><span class="m-val" id="res-inv-wn">0.00</span></div>
+        <div class="metric highlight"><span class="m-label">Stiffness (k)</span><span class="m-val" id="res-inv-k">0.0</span><span style="font-size:0.7rem;color:#10b981;"> N/m</span></div>
+        <div class="metric highlight"><span class="m-label">Damping (c)</span><span class="m-val" id="res-inv-c">0.0</span><span style="font-size:0.7rem;color:#10b981;"> Ns/m</span></div>
+      </div>
+    </div>
+
+    <!-- ENGINE 3: FREQUENCY TARGETING -->
+    <div class="card">
+      <div class="card-header">3. Design Targeting</div>
+      <div class="card-desc">Calculate required mass or stiffness to achieve a specific target Natural Frequency ($f_n$ in Hz).</div>
+      
+      <div class="input-group"><div class="input-label"><span>Target Frequency (f_n)</span><span>Hz</span></div><input type="number" id="tgt-fn" class="input-field" value="5.0"></div>
+      
+      <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 12px;">
+        <label style="font-size: 0.8rem; color: var(--accent); font-weight: bold; margin-bottom: 8px; display: block;">SELECT KNOWN PARAMETER:</label>
+        <select id="tgt-mode" class="input-field" style="margin-bottom: 8px;">
+          <option value="find-k">I know Mass (m) -> Find k</option>
+          <option value="find-m">I know Stiffness (k) -> Find m</option>
+        </select>
+        <div class="input-group" style="margin-bottom: 0;">
+          <div class="input-label"><span id="tgt-val-label">Known Mass (m)</span></div>
+          <input type="number" id="tgt-val" class="input-field" value="10">
+        </div>
+      </div>
+
+      <div class="results-grid" style="grid-template-columns: 1fr;">
+        <div class="metric highlight" style="text-align: center;">
+          <span class="m-label" id="res-tgt-label">Required Stiffness (k)</span>
+          <span class="m-val" id="res-tgt-ans" style="font-size: 1.8rem;">0.00</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- ENGINE 1: FORWARD ANALYSIS ---
+    function calcForward() {
+      const m = parseFloat(document.getElementById('fwd-m').value) || 0;
+      const k = parseFloat(document.getElementById('fwd-k').value) || 0;
+      const c = parseFloat(document.getElementById('fwd-c').value) || 0;
+      if (m <= 0 || k <= 0) return;
+
+      const wn = Math.sqrt(k / m);
+      const cc = 2 * Math.sqrt(k * m);
+      const zeta = c / cc;
+      
+      document.getElementById('res-fwd-wn').textContent = wn.toFixed(2);
+      document.getElementById('res-fwd-cc').textContent = cc.toFixed(2);
+      document.getElementById('res-fwd-zeta').textContent = zeta.toFixed(4);
+
+      const rLabel = document.getElementById('res-fwd-regime');
+      if (zeta < 1) {
+        const wd = wn * Math.sqrt(1 - zeta * zeta);
+        const delta = (2 * Math.PI * zeta) / Math.sqrt(1 - zeta * zeta);
+        document.getElementById('res-fwd-wd').textContent = wd.toFixed(2);
+        document.getElementById('res-fwd-delta').textContent = delta.toFixed(4);
+        rLabel.textContent = "Underdamped"; rLabel.style.color = "var(--accent)";
+      } else {
+        document.getElementById('res-fwd-wd').textContent = "0.00";
+        document.getElementById('res-fwd-delta').textContent = "N/A";
+        if (Math.abs(zeta - 1) < 0.01) { rLabel.textContent = "Critically Damped"; rLabel.style.color = "var(--success)"; }
+        else { rLabel.textContent = "Overdamped"; rLabel.style.color = "var(--warning)"; }
+      }
+    }
+    ['fwd-m', 'fwd-k', 'fwd-c'].forEach(id => document.getElementById(id).addEventListener('input', calcForward));
+    calcForward();
+
+    // --- ENGINE 2: EXPERIMENTAL INVERSE ---
+    function calcInverse() {
+      const m = parseFloat(document.getElementById('inv-m').value) || 0;
+      const x1 = parseFloat(document.getElementById('inv-x1').value) || 0;
+      const xn = parseFloat(document.getElementById('inv-xn').value) || 0;
+      const n = parseFloat(document.getElementById('inv-n').value) || 0;
+      const t = parseFloat(document.getElementById('inv-t').value) || 0;
+      
+      if (m <= 0 || x1 <= xn || xn <= 0 || n <= 0 || t <= 0) return;
+
+      // Advanced Log Decrement across 'n' cycles
+      const delta = (1 / n) * Math.log(x1 / xn);
+      const zeta = delta / Math.sqrt((4 * Math.PI * Math.PI) + (delta * delta));
+      const Td = t / n; // Time period of one cycle
+      const wd = (2 * Math.PI) / Td;
+      const wn = wd / Math.sqrt(1 - zeta * zeta);
+      const k = m * wn * wn;
+      const cc = 2 * m * wn;
+      const c = zeta * cc;
+
+      document.getElementById('res-inv-zeta').textContent = zeta.toFixed(4);
+      document.getElementById('res-inv-wn').textContent = wn.toFixed(2);
+      document.getElementById('res-inv-k').textContent = k.toFixed(1);
+      document.getElementById('res-inv-c').textContent = c.toFixed(2);
+    }
+    ['inv-m', 'inv-x1', 'inv-xn', 'inv-n', 'inv-t'].forEach(id => document.getElementById(id).addEventListener('input', calcInverse));
+    calcInverse();
+
+    // --- ENGINE 3: DESIGN TARGETING ---
+    const tgtMode = document.getElementById('tgt-mode');
+    const tgtValLabel = document.getElementById('tgt-val-label');
+    const tgtAnsLabel = document.getElementById('res-tgt-label');
+
+    tgtMode.addEventListener('change', (e) => {
+      if (e.target.value === 'find-k') {
+        tgtValLabel.textContent = "Known Mass (m) kg";
+        tgtAnsLabel.textContent = "Required Stiffness (k)";
+      } else {
+        tgtValLabel.textContent = "Known Stiffness (k) N/m";
+        tgtAnsLabel.textContent = "Required Mass (m)";
+      }
+      calcTarget();
+    });
+
+    function calcTarget() {
+      const fn = parseFloat(document.getElementById('tgt-fn').value) || 0;
+      const val = parseFloat(document.getElementById('tgt-val').value) || 0;
+      if (fn <= 0 || val <= 0) return;
+
+      const wn = fn * 2 * Math.PI; // Convert Hz to rad/s
+      let ans = 0;
+      let unit = "";
+
+      if (tgtMode.value === 'find-k') {
+        // We know m (val), find k
+        ans = val * wn * wn;
+        unit = " N/m";
+      } else {
+        // We know k (val), find m
+        ans = val / (wn * wn);
+        unit = " kg";
+      }
+
+      document.getElementById('res-tgt-ans').textContent = ans.toFixed(2) + unit;
+    }
+    ['tgt-fn', 'tgt-val'].forEach(id => document.getElementById(id).addEventListener('input', calcTarget));
+    calcTarget();
+
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Master Vibration Solver | SHEKH AYAN R.</title>
+  <title>Universal Solver | SHEKH AYAN R.</title>
   <style>
     :root {
       --bg: #05070a; --card-bg: #111520; --card-border: #1e2638;
@@ -11,13 +11,20 @@
       --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
       --text: #f8fafc; --text-muted: #64748b;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px 12px; min-height: 100vh; }
     
-    header { width: 100%; max-width: 800px; text-align: center; margin-bottom: 24px; }
+    header { width: 100%; max-width: 800px; text-align: center; margin-bottom: 16px; }
     h1 { font-size: 1.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text); }
     h1 span { color: var(--accent); }
     .subtitle { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; letter-spacing: 2px; margin-top: 4px; }
+
+    /* Cross-Linking Tabs */
+    .tabs { display: flex; width: 100%; max-width: 800px; background: rgba(17, 21, 32, 0.7); border-radius: 10px; margin-bottom: 24px; border: 1px solid var(--card-border); overflow: hidden; }
+    .tab-btn { flex: 1; padding: 12px 8px; background: transparent; border: none; border-right: 1px solid var(--card-border); color: var(--text-muted); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center; }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active { color: var(--text); background: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+    .tab-link { text-decoration: none; flex: 1; display: flex; }
 
     .dashboard { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 800px; }
     @media (min-width: 768px) { .dashboard { grid-template-columns: 1fr 1fr; } }
@@ -45,12 +52,23 @@
     <div class="subtitle">FREE DAMPED VIBRATION ANALYSIS | SHEKH AYAN R.</div>
   </header>
 
+  <!-- Cross-Project Navigation -->
+  <div class="tabs">
+    <button class="tab-btn active">UNIVERSAL SOLVER</button>
+    <a href="https://its-ay4n.github.io/vibration-lab/" class="tab-link">
+      <button class="tab-btn" style="width: 100%; color: #f59e0b;">2D LAB ➔</button>
+    </a>
+    <a href="https://its-ay4n.github.io/pro-dynamics-engine/" class="tab-link">
+      <button class="tab-btn" style="width: 100%; color: #ec4899;">3D ENGINE ➔</button>
+    </a>
+  </div>
+
   <div class="dashboard">
     
     <!-- ENGINE 1: FORWARD ANALYSIS -->
     <div class="card" style="grid-column: 1 / -1;">
       <div class="card-header">1. Physical Properties Analysis</div>
-      <div class="card-desc">Input known machine components ($m, k, c$) to calculate the complete dynamic behavior of the system.</div>
+      <div class="card-desc">Input known machine components (m, k, c) to calculate the complete dynamic behavior of the system.</div>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
         <div class="input-group"><div class="input-label"><span>Mass (m)</span><span>kg</span></div><input type="number" id="fwd-m" class="input-field" value="5.0"></div>
@@ -71,7 +89,7 @@
     <!-- ENGINE 2: EXPERIMENTAL INVERSE -->
     <div class="card">
       <div class="card-header">2. Experimental Data Solver</div>
-      <div class="card-desc">Advanced Logarithmic Decrement: Calculate hidden $c$ and $k$ properties using displacement peaks across multiple cycles.</div>
+      <div class="card-desc">Advanced Logarithmic Decrement: Calculate hidden c and k properties using displacement peaks across multiple cycles.</div>
       
       <div class="input-group"><div class="input-label"><span>System Mass (m)</span><span>kg</span></div><input type="number" id="inv-m" class="input-field" value="2.0"></div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -94,7 +112,7 @@
     <!-- ENGINE 3: FREQUENCY TARGETING -->
     <div class="card">
       <div class="card-header">3. Design Targeting</div>
-      <div class="card-desc">Calculate required mass or stiffness to achieve a specific target Natural Frequency ($f_n$ in Hz).</div>
+      <div class="card-desc">Calculate required mass or stiffness to achieve a specific target Natural Frequency (f_n in Hz).</div>
       
       <div class="input-group"><div class="input-label"><span>Target Frequency (f_n)</span><span>Hz</span></div><input type="number" id="tgt-fn" class="input-field" value="5.0"></div>
       
@@ -163,10 +181,9 @@
       
       if (m <= 0 || x1 <= xn || xn <= 0 || n <= 0 || t <= 0) return;
 
-      // Advanced Log Decrement across 'n' cycles
       const delta = (1 / n) * Math.log(x1 / xn);
       const zeta = delta / Math.sqrt((4 * Math.PI * Math.PI) + (delta * delta));
-      const Td = t / n; // Time period of one cycle
+      const Td = t / n; 
       const wd = (2 * Math.PI) / Td;
       const wn = wd / Math.sqrt(1 - zeta * zeta);
       const k = m * wn * wn;
@@ -202,16 +219,14 @@
       const val = parseFloat(document.getElementById('tgt-val').value) || 0;
       if (fn <= 0 || val <= 0) return;
 
-      const wn = fn * 2 * Math.PI; // Convert Hz to rad/s
+      const wn = fn * 2 * Math.PI;
       let ans = 0;
       let unit = "";
 
       if (tgtMode.value === 'find-k') {
-        // We know m (val), find k
         ans = val * wn * wn;
         unit = " N/m";
       } else {
-        // We know k (val), find m
         ans = val / (wn * wn);
         unit = " kg";
       }

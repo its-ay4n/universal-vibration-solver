@@ -3,236 +3,447 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Universal Solver | SHEKH AYAN R.</title>
+  <title>Pro Dynamics Lab | SHEKH AYAN R.</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
+
   <style>
     :root {
       --bg: #05070a; --card-bg: #111520; --card-border: #1e2638;
-      --accent: #0ea5e9; --accent-glow: rgba(14, 165, 233, 0.2);
+      --accent-cyan: #0ea5e9; --accent-glow: rgba(14, 165, 233, 0.3);
       --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
-      --text: #f8fafc; --text-muted: #64748b;
+      --text-main: #f8fafc; --text-muted: #64748b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px 12px; min-height: 100vh; }
+    body { background: var(--bg); color: var(--text-main); display: flex; flex-direction: column; align-items: center; padding: 16px 12px; min-height: 100vh; overflow-x: hidden; }
     
-    header { width: 100%; max-width: 800px; text-align: center; margin-bottom: 16px; }
-    h1 { font-size: 1.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text); }
-    h1 span { color: var(--accent); }
-    .subtitle { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; letter-spacing: 2px; margin-top: 4px; }
-
-    /* Cross-Linking Tabs */
-    .tabs { display: flex; width: 100%; max-width: 800px; background: rgba(17, 21, 32, 0.7); border-radius: 10px; margin-bottom: 24px; border: 1px solid var(--card-border); overflow: hidden; }
-    .tab-btn { flex: 1; padding: 12px 8px; background: transparent; border: none; border-right: 1px solid var(--card-border); color: var(--text-muted); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: center; }
+    header { width: 100%; max-width: 800px; text-align: center; margin-bottom: 16px; position: relative; }
+    h1 { font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: 0.5px; text-transform: uppercase; }
+    h1 span { color: var(--accent-cyan); text-shadow: 0 0 12px var(--accent-glow); }
+    .subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; font-weight: 600; letter-spacing: 1px; }
+    
+    /* Navigation Tabs */
+    .tabs { display: flex; width: 100%; max-width: 800px; background: rgba(17, 21, 32, 0.7); border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--card-border); backdrop-filter: blur(10px); overflow: hidden; }
+    .tab-btn { flex: 1; padding: 14px 8px; background: transparent; border: none; border-right: 1px solid var(--card-border); color: var(--text-muted); font-size: 0.85rem; font-weight: 800; cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px; }
     .tab-btn:last-child { border-right: none; }
-    .tab-btn.active { color: var(--text); background: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-    .tab-link { text-decoration: none; flex: 1; display: flex; }
-
-    .dashboard { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 800px; }
-    @media (min-width: 768px) { .dashboard { grid-template-columns: 1fr 1fr; } }
+    .tab-btn.active { color: var(--text-main); background: var(--accent-cyan); box-shadow: 0 0 15px var(--accent-glow); }
     
-    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .card-header { font-size: 1.1rem; color: var(--accent); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
-    .card-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
+    .tab-content { display: none; width: 100%; max-width: 800px; flex-direction: column; gap: 14px; }
+    .tab-content.active { display: flex; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    
+    /* Simulator Layout */
+    .canvas-grid { display: grid; grid-template-columns: 1fr; gap: 10px; height: auto; }
+    @media (min-width: 768px) { .canvas-grid { grid-template-columns: 1fr 1.5fr; height: 350px; } }
+    .canvas-wrapper { position: relative; width: 100%; height: 250px; border-radius: 10px; overflow: hidden; border: 1px solid var(--card-border); background: #070a11; }
+    @media (min-width: 768px) { .canvas-wrapper { height: 100%; } }
+    
+    #three-container { width: 100%; height: 100%; cursor: grab; background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%); }
+    #three-container:active { cursor: grabbing; }
+    canvas { width: 100%; height: 100%; outline: none; }
+    .zoom-btn { position: absolute; top: 8px; right: 8px; background: rgba(14, 165, 233, 0.2); border: 1px solid var(--accent-cyan); color: var(--text-main); padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; z-index: 10; backdrop-filter: blur(4px); }
+    
+    /* Controls & Sliders */
+    .controls-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) { .controls-grid { grid-template-columns: 1fr 1fr; } }
+    .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .metric { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; border: 1px solid var(--card-border); }
+    .metric-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom:4px; font-weight: 700; letter-spacing: 0.5px; }
+    .metric-value { font-size: 1.2rem; font-weight: 800; color: var(--text-main); font-family: monospace; }
+    
+    .control-row { margin-bottom: 12px; }
+    .label-flex { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; }
+    .label-flex span:last-child { color: var(--accent-cyan); font-family: monospace; font-size: 0.95rem; }
+    input[type="range"] { width: 100%; height: 6px; background: #334155; border-radius: 3px; outline: none; -webkit-appearance: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-cyan); cursor: pointer; }
+    
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+    button.action-btn { padding: 14px 0; border-radius: 8px; font-weight: 800; font-size: 0.9rem; border: none; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+    button.action-btn:active { transform: scale(0.96); }
+    .btn-primary { background: var(--success); color: #000; }
+    .btn-warning { background: var(--warning); color: #000; }
+    .btn-secondary { background: var(--card-border); color: var(--text-main); }
+
+    /* Universal Solver Styles */
+    .solver-header { font-size: 1.1rem; color: var(--accent-cyan); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+    .solver-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
     .input-group { margin-bottom: 12px; }
-    .input-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
-    .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); color: var(--text); padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s; font-family: monospace; }
-    .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+    .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); color: var(--text-main); padding: 12px; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s; font-family: monospace; }
+    .input-field:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 2px var(--accent-glow); }
+    .solver-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 
-    .results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
-    .metric { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); }
-    .metric.highlight { border-color: var(--success); background: rgba(16, 185, 129, 0.05); }
-    .m-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; display: block; }
-    .m-val { font-size: 1.2rem; font-weight: 800; color: var(--text); font-family: monospace; }
+    /* Modal */
+    #zoom-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(10px); }
+    #zoom-modal.hidden { display: none; }
+    .modal-content { width: 100%; max-width: 900px; height: 85vh; background: var(--bg); border-radius: 16px; display: flex; flex-direction: column; padding: 16px; border: 1px solid var(--card-border); box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .modal-header h2 { font-size: 1.2rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px; }
+    #modal-close { background: var(--danger); color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .modal-canvas-container { flex: 1; position: relative; width: 100%; background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%); border-radius: 10px; border: 1px solid var(--card-border); overflow: hidden; }
+    .modal-controls { display: flex; gap: 8px; margin-top: 12px; width: 100%; }
+    .modal-controls button { flex: 1; padding: 12px 0; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Universal <span>Solver</span></h1>
-    <div class="subtitle">FREE DAMPED VIBRATION ANALYSIS | SHEKH AYAN R.</div>
+    <h1>Pro Dynamics <span>Lab</span></h1>
+    <div class="subtitle">DEVELOPED BY SHEKH AYAN R.</div>
   </header>
 
-  <!-- Cross-Project Navigation -->
   <div class="tabs">
-    <a href="https://its-ay4n.github.io/vibration-lab/" class="tab-link">
-      <button class="tab-btn" style="width: 100%; color: #f59e0b;">⬅ BACK TO 2D LAB</button>
-    </a>
-    <button class="tab-btn active">UNIVERSAL SOLVER</button>
+    <button class="tab-btn active" onclick="switchTab('sim')">1. SIMULATOR</button>
+    <button class="tab-btn" onclick="switchTab('solver')">2. UNIVERSAL SOLVER</button>
   </div>
 
-  <div class="dashboard">
+  <div id="tab-sim" class="tab-content active">
+    <div class="card canvas-grid" style="padding: 10px;">
+      <div class="canvas-wrapper" id="three-wrapper">
+        <button class="zoom-btn" onclick="openZoom('mech')">🔍 ZOOM</button>
+        <div id="three-container"></div>
+      </div>
+      <div class="canvas-wrapper">
+        <button class="zoom-btn" onclick="openZoom('graph')">🔍 ZOOM</button>
+        <canvas id="graphCanvas"></canvas>
+      </div>
+    </div>
     
-    <!-- ENGINE 1: FORWARD ANALYSIS -->
-    <div class="card" style="grid-column: 1 / -1;">
-      <div class="card-header">1. Physical Properties Analysis</div>
-      <div class="card-desc">Input known machine components (m, k, c) to calculate the complete dynamic behavior of the system.</div>
-      
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-        <div class="input-group"><div class="input-label"><span>Mass (m)</span><span>kg</span></div><input type="number" id="fwd-m" class="input-field" value="5.0"></div>
-        <div class="input-group"><div class="input-label"><span>Stiffness (k)</span><span>N/m</span></div><input type="number" id="fwd-k" class="input-field" value="2000"></div>
-        <div class="input-group"><div class="input-label"><span>Damping (c)</span><span>Ns/m</span></div><input type="number" id="fwd-c" class="input-field" value="25"></div>
-      </div>
-
-      <div class="results-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
-        <div class="metric"><span class="m-label">Nat. Freq (&omega;_n)</span><span class="m-val" id="res-fwd-wn">0.00</span><span style="font-size:0.7rem;color:#64748b;"> rad/s</span></div>
-        <div class="metric"><span class="m-label">Crit Damping (c_c)</span><span class="m-val" id="res-fwd-cc">0.00</span><span style="font-size:0.7rem;color:#64748b;"> Ns/m</span></div>
-        <div class="metric highlight"><span class="m-label">Damping Ratio (&zeta;)</span><span class="m-val" id="res-fwd-zeta" style="color:var(--accent);">0.00</span></div>
-        <div class="metric"><span class="m-label">Damped Freq (&omega;_d)</span><span class="m-val" id="res-fwd-wd">0.00</span><span style="font-size:0.7rem;color:#64748b;"> rad/s</span></div>
-        <div class="metric"><span class="m-label">Log Decrement (&delta;)</span><span class="m-val" id="res-fwd-delta">0.00</span></div>
-        <div class="metric"><span class="m-label">System Regime</span><span class="m-val" id="res-fwd-regime" style="font-size: 1rem;">Underdamped</span></div>
-      </div>
+    <div class="btn-grid" style="margin-top: 0px;">
+      <button id="btn-release" class="action-btn btn-primary">RUN</button>
+      <button id="btn-pause" class="action-btn btn-warning">PAUSE</button>
+      <button id="btn-reset" class="action-btn btn-secondary">RESET</button>
     </div>
 
-    <!-- ENGINE 2: EXPERIMENTAL INVERSE -->
-    <div class="card">
-      <div class="card-header">2. Experimental Data Solver</div>
-      <div class="card-desc">Advanced Logarithmic Decrement: Calculate hidden c and k properties using displacement peaks across multiple cycles.</div>
-      
-      <div class="input-group"><div class="input-label"><span>System Mass (m)</span><span>kg</span></div><input type="number" id="inv-m" class="input-field" value="2.0"></div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div class="input-group"><div class="input-label"><span>Start Peak (X₁)</span><span>mm</span></div><input type="number" id="inv-x1" class="input-field" value="50"></div>
-        <div class="input-group"><div class="input-label"><span>End Peak (Xₙ)</span><span>mm</span></div><input type="number" id="inv-xn" class="input-field" value="12"></div>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div class="input-group"><div class="input-label"><span>Number of Cycles (n)</span><span>count</span></div><input type="number" id="inv-n" class="input-field" value="3"></div>
-        <div class="input-group"><div class="input-label"><span>Time for n cycles (t)</span><span>sec</span></div><input type="number" id="inv-t" class="input-field" value="1.5"></div>
-      </div>
-
-      <div class="results-grid">
-        <div class="metric"><span class="m-label">Damping Ratio (&zeta;)</span><span class="m-val" id="res-inv-zeta">0.00</span></div>
-        <div class="metric"><span class="m-label">Nat. Freq (&omega;_n)</span><span class="m-val" id="res-inv-wn">0.00</span></div>
-        <div class="metric highlight"><span class="m-label">Stiffness (k)</span><span class="m-val" id="res-inv-k">0.0</span><span style="font-size:0.7rem;color:#10b981;"> N/m</span></div>
-        <div class="metric highlight"><span class="m-label">Damping (c)</span><span class="m-val" id="res-inv-c">0.0</span><span style="font-size:0.7rem;color:#10b981;"> Ns/m</span></div>
-      </div>
-    </div>
-
-    <!-- ENGINE 3: FREQUENCY TARGETING -->
-    <div class="card">
-      <div class="card-header">3. Design Targeting</div>
-      <div class="card-desc">Calculate required mass or stiffness to achieve a specific target Natural Frequency (f_n in Hz).</div>
-      
-      <div class="input-group"><div class="input-label"><span>Target Frequency (f_n)</span><span>Hz</span></div><input type="number" id="tgt-fn" class="input-field" value="5.0"></div>
-      
-      <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 12px;">
-        <label style="font-size: 0.8rem; color: var(--accent); font-weight: bold; margin-bottom: 8px; display: block;">SELECT KNOWN PARAMETER:</label>
-        <select id="tgt-mode" class="input-field" style="margin-bottom: 8px;">
-          <option value="find-k">I know Mass (m) -> Find k</option>
-          <option value="find-m">I know Stiffness (k) -> Find m</option>
-        </select>
-        <div class="input-group" style="margin-bottom: 0;">
-          <div class="input-label"><span id="tgt-val-label">Known Mass (m)</span></div>
-          <input type="number" id="tgt-val" class="input-field" value="10">
+    <div class="controls-grid">
+      <div class="card">
+        <div class="metrics-grid">
+          <div class="metric">
+            <div class="metric-label">Nat. Freq (&omega;_n) / Crit (c_c)</div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+              <span id="val-wn" class="metric-value">10.0 rad/s</span>
+              <span id="val-cc" style="font-size:0.8rem; color:var(--text-muted);">20 Ns/m</span>
+            </div>
+          </div>
+          <div class="metric" id="regime-box">
+            <div class="metric-label">System Regime</div>
+            <div id="val-regime" class="metric-value" style="color:var(--accent-cyan);">Underdamped</div>
+          </div>
         </div>
       </div>
 
-      <div class="results-grid" style="grid-template-columns: 1fr;">
-        <div class="metric highlight" style="text-align: center;">
-          <span class="m-label" id="res-tgt-label">Required Stiffness (k)</span>
-          <span class="m-val" id="res-tgt-ans" style="font-size: 1.8rem;">0.00</span>
+      <div class="card">
+        <div class="control-row">
+          <div class="label-flex"><span>Mass (m)</span><span id="label-m">1.0 kg</span></div>
+          <input id="slider-m" type="range" min="0.5" max="10.0" step="0.5" value="1.0" />
+        </div>
+        <div class="control-row">
+          <div class="label-flex"><span>Spring Stiffness (k)</span><span id="label-k">100 N/m</span></div>
+          <input id="slider-k" type="range" min="10" max="500" step="10" value="100" />
+        </div>
+        <div class="control-row">
+          <div class="label-flex"><span>Damping Ratio (&zeta;)</span><span id="label-zeta-input">0.10</span></div>
+          <input id="slider-zeta" type="range" min="0" max="2.0" step="0.01" value="0.10" />
+        </div>
+        <div class="control-row" style="display: none;">
+          <input id="slider-c" type="range" min="0" max="100" step="0.5" value="2.0" />
+        </div>
+        <div class="control-row">
+          <div class="label-flex"><span>Initial Displacement (x₀)</span><span id="label-x0">60 mm</span></div>
+          <input id="slider-x0" type="range" min="10" max="90" step="5" value="60" />
         </div>
       </div>
     </div>
+  </div>
 
+  <div id="tab-solver" class="tab-content">
+    
+    <div class="card">
+      <div class="solver-header">1. Physical Properties Analysis</div>
+      <div class="solver-desc">Input known machine components (m, k, c) to calculate the complete dynamic behavior.</div>
+      <div class="solver-grid">
+        <div class="input-group"><div class="label-flex"><span>Mass (m) kg</span></div><input type="number" id="fwd-m" class="input-field" value="5.0"></div>
+        <div class="input-group"><div class="label-flex"><span>Stiffness (k) N/m</span></div><input type="number" id="fwd-k" class="input-field" value="2000"></div>
+        <div class="input-group"><div class="label-flex"><span>Damping (c) Ns/m</span></div><input type="number" id="fwd-c" class="input-field" value="25"></div>
+      </div>
+      <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+        <div class="metric"><span class="metric-label">Nat. Freq (&omega;_n)</span><span class="metric-value" id="res-fwd-wn">0.00</span></div>
+        <div class="metric"><span class="metric-label">Crit Damping (c_c)</span><span class="metric-value" id="res-fwd-cc">0.00</span></div>
+        <div class="metric" style="border-color:var(--accent-cyan);"><span class="metric-label">Damping Ratio (&zeta;)</span><span class="metric-value" id="res-fwd-zeta" style="color:var(--accent-cyan);">0.00</span></div>
+        <div class="metric"><span class="metric-label">Damped Freq (&omega;_d)</span><span class="metric-value" id="res-fwd-wd">0.00</span></div>
+        <div class="metric"><span class="metric-label">Log Decrement (&delta;)</span><span class="metric-value" id="res-fwd-delta">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="solver-header">2. Experimental Data Solver</div>
+      <div class="solver-desc">Calculate hidden c and k properties using displacement peaks across multiple cycles.</div>
+      <div class="input-group"><div class="label-flex"><span>System Mass (m) kg</span></div><input type="number" id="inv-m" class="input-field" value="2.0"></div>
+      <div class="solver-grid">
+        <div class="input-group"><div class="label-flex"><span>Start Peak (X₁) mm</span></div><input type="number" id="inv-x1" class="input-field" value="50"></div>
+        <div class="input-group"><div class="label-flex"><span>End Peak (Xₙ) mm</span></div><input type="number" id="inv-xn" class="input-field" value="12"></div>
+        <div class="input-group"><div class="label-flex"><span>Number of Cycles (n)</span></div><input type="number" id="inv-n" class="input-field" value="3"></div>
+        <div class="input-group"><div class="label-flex"><span>Time for n cycles (t) s</span></div><input type="number" id="inv-t" class="input-field" value="1.5"></div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric"><span class="metric-label">Damping Ratio (&zeta;)</span><span class="metric-value" id="res-inv-zeta">0.00</span></div>
+        <div class="metric"><span class="metric-label">Nat. Freq (&omega;_n)</span><span class="metric-value" id="res-inv-wn">0.00</span></div>
+        <div class="metric" style="border-color:var(--success);"><span class="metric-label">Stiffness (k) N/m</span><span class="metric-value" id="res-inv-k" style="color:var(--success);">0.0</span></div>
+        <div class="metric" style="border-color:var(--success);"><span class="metric-label">Damping (c) Ns/m</span><span class="metric-value" id="res-inv-c" style="color:var(--success);">0.0</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="solver-header">3. Design Targeting</div>
+      <div class="solver-desc">Calculate required mass or stiffness to achieve a specific target Natural Frequency (f_n in Hz).</div>
+      <div class="input-group"><div class="label-flex"><span>Target Frequency (f_n) Hz</span></div><input type="number" id="tgt-fn" class="input-field" value="5.0"></div>
+      <select id="tgt-mode" class="input-field" style="margin-bottom: 12px; font-weight: bold; color: var(--accent-cyan);">
+        <option value="find-k">I know Mass (m) -> Find k</option>
+        <option value="find-m">I know Stiffness (k) -> Find m</option>
+      </select>
+      <div class="input-group"><div class="label-flex"><span id="tgt-val-label">Known Mass (m) kg</span></div><input type="number" id="tgt-val" class="input-field" value="10"></div>
+      <div class="metric" style="text-align: center; border-color: var(--accent-cyan); background: rgba(14, 165, 233, 0.05); padding: 20px;">
+        <span class="metric-label" id="res-tgt-label">Required Stiffness (k)</span>
+        <span class="metric-value" id="res-tgt-ans" style="font-size: 1.8rem; color: var(--accent-cyan);">0.00</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="zoom-modal" class="hidden">
+    <div class="modal-content">
+      <div class="modal-header"><h2 id="modal-title">Analysis View</h2><button id="modal-close">CLOSE</button></div>
+      <div class="modal-canvas-container" id="modal-container">
+        <canvas id="modalCanvas"></canvas>
+      </div>
+      <div class="modal-controls">
+        <button id="modal-btn-release" class="action-btn btn-primary">RUN</button>
+        <button id="modal-btn-pause" class="action-btn btn-warning">PAUSE</button>
+        <button id="modal-btn-reset" class="action-btn btn-secondary">RESET</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // --- ENGINE 1: FORWARD ANALYSIS ---
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active'); 
+      document.getElementById('tab-' + tabId).classList.add('active');
+      if (tabId === 'sim') { resizeThreeJS(); resizeGraph(); }
+    }
+
+    // --- UNIVERSAL SOLVER MATH ---
     function calcForward() {
       const m = parseFloat(document.getElementById('fwd-m').value) || 0;
       const k = parseFloat(document.getElementById('fwd-k').value) || 0;
       const c = parseFloat(document.getElementById('fwd-c').value) || 0;
       if (m <= 0 || k <= 0) return;
-
-      const wn = Math.sqrt(k / m);
-      const cc = 2 * Math.sqrt(k * m);
-      const zeta = c / cc;
-      
+      const wn = Math.sqrt(k / m), cc = 2 * Math.sqrt(k * m), zeta = c / cc;
       document.getElementById('res-fwd-wn').textContent = wn.toFixed(2);
       document.getElementById('res-fwd-cc').textContent = cc.toFixed(2);
       document.getElementById('res-fwd-zeta').textContent = zeta.toFixed(4);
-
-      const rLabel = document.getElementById('res-fwd-regime');
       if (zeta < 1) {
-        const wd = wn * Math.sqrt(1 - zeta * zeta);
-        const delta = (2 * Math.PI * zeta) / Math.sqrt(1 - zeta * zeta);
-        document.getElementById('res-fwd-wd').textContent = wd.toFixed(2);
-        document.getElementById('res-fwd-delta').textContent = delta.toFixed(4);
-        rLabel.textContent = "Underdamped"; rLabel.style.color = "var(--accent)";
+        document.getElementById('res-fwd-wd').textContent = (wn * Math.sqrt(1 - zeta * zeta)).toFixed(2);
+        document.getElementById('res-fwd-delta').textContent = ((2 * Math.PI * zeta) / Math.sqrt(1 - zeta * zeta)).toFixed(4);
       } else {
         document.getElementById('res-fwd-wd').textContent = "0.00";
         document.getElementById('res-fwd-delta').textContent = "N/A";
-        if (Math.abs(zeta - 1) < 0.01) { rLabel.textContent = "Critically Damped"; rLabel.style.color = "var(--success)"; }
-        else { rLabel.textContent = "Overdamped"; rLabel.style.color = "var(--warning)"; }
       }
     }
-    ['fwd-m', 'fwd-k', 'fwd-c'].forEach(id => document.getElementById(id).addEventListener('input', calcForward));
-    calcForward();
+    ['fwd-m', 'fwd-k', 'fwd-c'].forEach(id => document.getElementById(id).addEventListener('input', calcForward)); calcForward();
 
-    // --- ENGINE 2: EXPERIMENTAL INVERSE ---
     function calcInverse() {
-      const m = parseFloat(document.getElementById('inv-m').value) || 0;
-      const x1 = parseFloat(document.getElementById('inv-x1').value) || 0;
-      const xn = parseFloat(document.getElementById('inv-xn').value) || 0;
-      const n = parseFloat(document.getElementById('inv-n').value) || 0;
-      const t = parseFloat(document.getElementById('inv-t').value) || 0;
-      
+      const m = parseFloat(document.getElementById('inv-m').value) || 0, x1 = parseFloat(document.getElementById('inv-x1').value) || 0, xn = parseFloat(document.getElementById('inv-xn').value) || 0, n = parseFloat(document.getElementById('inv-n').value) || 0, t = parseFloat(document.getElementById('inv-t').value) || 0;
       if (m <= 0 || x1 <= xn || xn <= 0 || n <= 0 || t <= 0) return;
-
-      const delta = (1 / n) * Math.log(x1 / xn);
-      const zeta = delta / Math.sqrt((4 * Math.PI * Math.PI) + (delta * delta));
-      const Td = t / n; 
-      const wd = (2 * Math.PI) / Td;
-      const wn = wd / Math.sqrt(1 - zeta * zeta);
-      const k = m * wn * wn;
-      const cc = 2 * m * wn;
-      const c = zeta * cc;
-
-      document.getElementById('res-inv-zeta').textContent = zeta.toFixed(4);
-      document.getElementById('res-inv-wn').textContent = wn.toFixed(2);
-      document.getElementById('res-inv-k').textContent = k.toFixed(1);
-      document.getElementById('res-inv-c').textContent = c.toFixed(2);
+      const delta = (1 / n) * Math.log(x1 / xn), zeta = delta / Math.sqrt((4 * Math.PI * Math.PI) + (delta * delta)), wd = (2 * Math.PI) / (t / n), wn = wd / Math.sqrt(1 - zeta * zeta);
+      document.getElementById('res-inv-zeta').textContent = zeta.toFixed(4); document.getElementById('res-inv-wn').textContent = wn.toFixed(2);
+      document.getElementById('res-inv-k').textContent = (m * wn * wn).toFixed(1); document.getElementById('res-inv-c').textContent = (zeta * 2 * m * wn).toFixed(2);
     }
-    ['inv-m', 'inv-x1', 'inv-xn', 'inv-n', 'inv-t'].forEach(id => document.getElementById(id).addEventListener('input', calcInverse));
-    calcInverse();
+    ['inv-m', 'inv-x1', 'inv-xn', 'inv-n', 'inv-t'].forEach(id => document.getElementById(id).addEventListener('input', calcInverse)); calcInverse();
 
-    // --- ENGINE 3: DESIGN TARGETING ---
-    const tgtMode = document.getElementById('tgt-mode');
-    const tgtValLabel = document.getElementById('tgt-val-label');
-    const tgtAnsLabel = document.getElementById('res-tgt-label');
-
+    const tgtMode = document.getElementById('tgt-mode'), tgtValLabel = document.getElementById('tgt-val-label'), tgtAnsLabel = document.getElementById('res-tgt-label');
     tgtMode.addEventListener('change', (e) => {
-      if (e.target.value === 'find-k') {
-        tgtValLabel.textContent = "Known Mass (m) kg";
-        tgtAnsLabel.textContent = "Required Stiffness (k)";
-      } else {
-        tgtValLabel.textContent = "Known Stiffness (k) N/m";
-        tgtAnsLabel.textContent = "Required Mass (m)";
-      }
+      tgtValLabel.textContent = e.target.value === 'find-k' ? "Known Mass (m) kg" : "Known Stiffness (k) N/m";
+      tgtAnsLabel.textContent = e.target.value === 'find-k' ? "Required Stiffness (k)" : "Required Mass (m)";
       calcTarget();
     });
-
     function calcTarget() {
-      const fn = parseFloat(document.getElementById('tgt-fn').value) || 0;
-      const val = parseFloat(document.getElementById('tgt-val').value) || 0;
+      const fn = parseFloat(document.getElementById('tgt-fn').value) || 0, val = parseFloat(document.getElementById('tgt-val').value) || 0;
       if (fn <= 0 || val <= 0) return;
-
       const wn = fn * 2 * Math.PI;
-      let ans = 0;
-      let unit = "";
+      document.getElementById('res-tgt-ans').textContent = (tgtMode.value === 'find-k' ? (val * wn * wn).toFixed(2) + " N/m" : (val / (wn * wn)).toFixed(2) + " kg");
+    }
+    ['tgt-fn', 'tgt-val'].forEach(id => document.getElementById(id).addEventListener('input', calcTarget)); calcTarget();
 
-      if (tgtMode.value === 'find-k') {
-        ans = val * wn * wn;
-        unit = " N/m";
+    // --- 3D SIMULATOR LOGIC ---
+    let m_sim = 1.0, k_sim = 100, c_sim = 2.0, x0_sim = 0.06, t_sim = 0, isRunning = false, graphData = [];
+    const threeContainer = document.getElementById("three-container");
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(threeContainer.clientWidth, threeContainer.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    threeContainer.appendChild(renderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(35, threeContainer.clientWidth / threeContainer.clientHeight, 0.1, 100);
+    camera.position.set(0, -1, 16);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.05; controls.maxPolarAngle = Math.PI / 1.6;
+
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGenerator.fromScene(new THREE.RoomEnvironment()).texture;
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    dirLight.position.set(5, 10, 8); dirLight.castShadow = true;
+    scene.add(dirLight); scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.05, transmission: 0.9, transparent: true, opacity: 1.0 });
+    const fluidMat = new THREE.MeshPhysicalMaterial({ color: 0xeab308, transmission: 0.7, transparent: true, roughness: 0.1 });
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1.0, roughness: 0.15 });
+    const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.4 });
+    const anodizedBlueMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.7, roughness: 0.3 });
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.3, roughness: 0.8 });
+
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), floorMat);
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -6; floor.receiveShadow = true; scene.add(floor);
+    const ceiling = new THREE.Mesh(new THREE.BoxGeometry(6, 0.5, 3), darkMetalMat);
+    ceiling.position.y = 4.5; ceiling.castShadow = true; scene.add(ceiling);
+
+    const massMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 1.2, 32), anodizedBlueMat);
+    massMesh.castShadow = true; scene.add(massMesh);
+
+    const damperGroup = new THREE.Group(); damperGroup.position.set(1.5, 4.25, 0); scene.add(damperGroup);
+    const glassTube = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3.5, 32, 1, true), glassMat);
+    glassTube.position.y = -1.75; damperGroup.add(glassTube);
+    const fluidVolume = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 3.4, 32), fluidMat);
+    fluidVolume.position.y = -1.75; damperGroup.add(fluidVolume);
+    const pistonRod = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 5, 16), chromeMat);
+    pistonRod.castShadow = true; scene.add(pistonRod);
+    const pistonHead = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.2, 32), darkMetalMat); scene.add(pistonHead);
+
+    class SpringCurve extends THREE.Curve {
+      constructor(startY, endY, coils, radius) { super(); this.startY = startY; this.endY = endY; this.coils = coils; this.radius = radius; }
+      getPoint(t, optionalTarget = new THREE.Vector3()) {
+        const y = this.startY + t * (this.endY - this.startY); const angle = t * Math.PI * 2 * this.coils;
+        return optionalTarget.set(Math.cos(angle)*this.radius - 1.5, y, Math.sin(angle)*this.radius);
+      }
+    }
+    let springMesh = new THREE.Mesh(new THREE.BufferGeometry(), chromeMat);
+    springMesh.castShadow = true; scene.add(springMesh);
+
+    function resizeThreeJS() {
+      if (!renderer.domElement.parentElement) return;
+      const parent = renderer.domElement.parentElement; camera.aspect = parent.clientWidth / parent.clientHeight;
+      camera.updateProjectionMatrix(); renderer.setSize(parent.clientWidth, parent.clientHeight);
+    }
+    window.addEventListener("resize", resizeThreeJS);
+
+    const graphCanvas = document.getElementById("graphCanvas"), modalCanvas = document.getElementById("modalCanvas");
+    const ctxGraph = graphCanvas.getContext("2d"), ctxModal = modalCanvas.getContext("2d");
+    let activeZoom = null;
+    
+    function resizeGraph() {
+      const dpr = window.devicePixelRatio || 1;
+      graphCanvas.width = graphCanvas.clientWidth * dpr; graphCanvas.height = graphCanvas.clientHeight * dpr;
+      if (activeZoom === 'graph') { modalCanvas.width = modalCanvas.clientWidth * dpr; modalCanvas.height = modalCanvas.clientHeight * dpr; }
+    }
+    window.addEventListener("resize", resizeGraph); resizeGraph();
+
+    function getDisplacement(time) {
+      const wn = Math.sqrt(k_sim / m_sim), cc = 2 * Math.sqrt(k_sim * m_sim), zeta = c_sim / cc;
+      if (zeta < 1) {
+        const wd = wn * Math.sqrt(1 - zeta * zeta), B = (zeta * wn * x0_sim) / wd;
+        return Math.exp(-zeta * wn * time) * (x0_sim * Math.cos(wd * time) + B * Math.sin(wd * time));
+      } else if (Math.abs(zeta - 1) < 0.01) {
+        return x0_sim * (1 + wn * time) * Math.exp(-wn * time);
       } else {
-        ans = val / (wn * wn);
-        unit = " kg";
+        const beta = wn * Math.sqrt(zeta * zeta - 1), s1 = -zeta * wn + beta, s2 = -zeta * wn - beta;
+        const C1 = (x0_sim * s2) / (s2 - s1), C2 = (-x0_sim * s1) / (s2 - s1);
+        return C1 * Math.exp(s1 * time) + C2 * Math.exp(s2 * time);
+      }
+    }
+
+    function updateSimCalculations() {
+      const wn = Math.sqrt(k_sim / m_sim), cc = 2 * Math.sqrt(k_sim * m_sim), zeta = c_sim / cc;
+      document.getElementById("val-wn").textContent = wn.toFixed(1) + " rad/s"; document.getElementById("val-cc").textContent = cc.toFixed(1) + " Ns/m";
+      document.getElementById("slider-zeta").value = zeta; document.getElementById("label-zeta-input").textContent = zeta.toFixed(2);
+      
+      const rBox = document.getElementById("regime-box"), rVal = document.getElementById("val-regime");
+      if (zeta < 0.99) { rVal.textContent = "Underdamped"; rVal.style.color = "var(--accent-cyan)"; rBox.style.borderColor = "var(--accent-cyan)"; } 
+      else if(Math.abs(zeta - 1) <= 0.05) { rVal.textContent = "Critically Damped"; rVal.style.color = "var(--success)"; rBox.style.borderColor = "var(--success)"; } 
+      else { rVal.textContent = "Overdamped"; rVal.style.color = "var(--danger)"; rBox.style.borderColor = "var(--danger)"; }
+    }
+
+    document.getElementById("slider-m").addEventListener("input", (e) => { m_sim = parseFloat(e.target.value); document.getElementById("label-m").textContent = m_sim.toFixed(1) + " kg"; updateSimCalculations(); resetSim(); });
+    document.getElementById("slider-k").addEventListener("input", (e) => { k_sim = parseFloat(e.target.value); document.getElementById("label-k").textContent = k_sim.toFixed(0) + " N/m"; updateSimCalculations(); resetSim(); });
+    document.getElementById("slider-zeta").addEventListener("input", (e) => { c_sim = parseFloat(e.target.value) * 2 * Math.sqrt(k_sim * m_sim); document.getElementById("slider-c").value = c_sim; updateSimCalculations(); resetSim(); });
+    document.getElementById("slider-x0").addEventListener("input", (e) => { x0_sim = parseFloat(e.target.value) / 1000; document.getElementById("label-x0").textContent = (x0_sim * 1000).toFixed(0) + " mm"; resetSim(); });
+
+    function runSim() { if(t_sim === 0) { graphData = []; } isRunning = true; }
+    function pauseSim() { isRunning = false; }
+    function resetSim() { t_sim = 0; isRunning = false; graphData = []; render3D(x0_sim); }
+
+    document.getElementById("btn-release").addEventListener("click", runSim); document.getElementById("btn-pause").addEventListener("click", pauseSim); document.getElementById("btn-reset").addEventListener("click", resetSim);
+    document.getElementById("modal-btn-release").addEventListener("click", runSim); document.getElementById("modal-btn-pause").addEventListener("click", pauseSim); document.getElementById("modal-btn-reset").addEventListener("click", resetSim);
+
+    function render3D(currentX) {
+      const displayScale = 35; const massY = 0 - (currentX * displayScale);
+      massMesh.position.y = massY; pistonRod.position.set(1.5, massY + 3.1, 0); pistonHead.position.set(1.5, massY + 0.7, 0); 
+      if(springMesh.geometry) springMesh.geometry.dispose();
+      springMesh.geometry = new THREE.TubeGeometry(new SpringCurve(4.25, massY + 0.6, 10, 0.8), 100, 0.12, 8, false);
+    }
+
+    const zoomModal = document.getElementById("zoom-modal"), modalTitle = document.getElementById("modal-title"), modalContainer = document.getElementById("modal-container");
+    function openZoom(type) { 
+      activeZoom = type; zoomModal.classList.remove("hidden"); modalTitle.textContent = type === 'mech' ? "Interactive 3D Render" : "Oscilloscope Graph"; 
+      if (type === 'mech') { modalCanvas.style.display = "none"; modalContainer.insertBefore(renderer.domElement, modalContainer.firstChild); resizeThreeJS(); } else { modalCanvas.style.display = "block"; resizeGraph(); }
+    }
+    document.getElementById("modal-close").addEventListener("click", () => { 
+      if (activeZoom === 'mech') { document.getElementById("three-wrapper").appendChild(renderer.domElement); resizeThreeJS(); }
+      activeZoom = null; zoomModal.classList.add("hidden"); 
+    });
+    
+    function renderGraph(ctx, w, h, currentX) {
+      ctx.clearRect(0, 0, w, h); 
+      const padL = 35, padB = 20, padT = 10, padR = 10, plotW = w - padL - padR, plotH = h - padT - padB, centerY = padT + plotH / 2;
+      const maxTime = graphData.length > 0 ? Math.max(5, graphData[graphData.length - 1].t) : 5; const yMax = 0.09; 
+
+      ctx.strokeStyle = "rgba(255,255,255,0.05)"; ctx.lineWidth = 1;
+      for(let i=1; i<=4; i++) {
+        let yLine1 = centerY - (i/4)*(plotH/2), yLine2 = centerY + (i/4)*(plotH/2); ctx.beginPath(); ctx.moveTo(padL, yLine1); ctx.lineTo(w-padR, yLine1); ctx.stroke(); ctx.beginPath(); ctx.moveTo(padL, yLine2); ctx.lineTo(w-padR, yLine2); ctx.stroke();
       }
 
-      document.getElementById('res-tgt-ans').textContent = ans.toFixed(2) + unit;
-    }
-    ['tgt-fn', 'tgt-val'].forEach(id => document.getElementById(id).addEventListener('input', calcTarget));
-    calcTarget();
+      ctx.strokeStyle = "#475569"; ctx.beginPath(); ctx.moveTo(padL, centerY); ctx.lineTo(w - padR, centerY); ctx.moveTo(padL, padT); ctx.lineTo(padL, h - padB); ctx.stroke();
+      ctx.fillStyle = "#64748b"; ctx.font = "10px sans-serif"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      ctx.fillText("+90", padL - 4, padT); ctx.fillText("-90", padL - 4, padT + plotH); ctx.fillText("0", padL - 4, centerY);
+      ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillText("0s", padL, h - padB + 4); ctx.fillText(maxTime.toFixed(1) + "s", w - padR, h - padB + 4);
 
+      if (graphData.length > 1) {
+        ctx.strokeStyle = "#0ea5e9"; ctx.lineWidth = 2.5; ctx.lineJoin = "round"; ctx.beginPath();
+        for (let i = 0; i < graphData.length; i++) { const px = padL + (graphData[i].t / maxTime) * plotW, py = centerY - (graphData[i].x / yMax) * (plotH / 2); if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); } ctx.stroke();
+      }
+    }
+
+    function loop() {
+      if(document.getElementById('tab-sim').classList.contains('active')) {
+        let dt = 0.016;
+        const currentX = isRunning || graphData.length === 0 ? getDisplacement(t_sim) : graphData[graphData.length - 1].x;
+        if (isRunning) { graphData.push({ t: t_sim, x: currentX }); t_sim += dt; }
+        
+        render3D(currentX); controls.update(); renderer.render(scene, camera);
+        renderGraph(ctxGraph, graphCanvas.width, graphCanvas.height, currentX);
+        if (activeZoom === 'graph') renderGraph(ctxModal, modalCanvas.width, modalCanvas.height, currentX);
+      }
+      requestAnimationFrame(loop);
+    }
+    
+    updateSimCalculations(); render3D(x0_sim); loop();
   </script>
 </body>
 </html>

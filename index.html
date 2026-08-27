@@ -6,6 +6,7 @@
   <title>Pro Dynamics Lab | SHEKH AYAN R.</title>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   
+  <!-- Three.js for the Simulator -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
@@ -69,13 +70,19 @@
     .btn-warning { background: var(--warning); color: #000; }
     .btn-secondary { background: var(--card-border); color: var(--text-main); }
 
-    /* Universal Solver Styles */
-    .solver-header { font-size: 1.1rem; color: var(--accent-cyan); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
-    .solver-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
-    .input-group { margin-bottom: 12px; }
-    .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); color: var(--text-main); padding: 12px; border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s; font-family: monospace; }
-    .input-field:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 2px var(--accent-glow); }
-    .solver-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    /* Omni-Solver Styles */
+    .solver-header { font-size: 1.2rem; color: var(--accent-cyan); font-weight: 800; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+    .solver-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+    
+    .omni-grid { display: flex; flex-direction: column; gap: 10px; }
+    .omni-row { display: flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 12px; gap: 12px; }
+    @media (max-width: 600px) { .omni-row { flex-wrap: wrap; gap: 8px; } .omni-label { width: 100%; margin-bottom: 4px; } }
+    .omni-label { flex: 2; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+    .omni-label span { font-size: 0.7rem; color: var(--text-muted); font-family: monospace; margin-left: 4px; }
+    .omni-toggle { flex: 1; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--accent-cyan); padding: 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; outline: none; cursor: pointer; }
+    .omni-input { flex: 2; background: #0b0f19; border: 1px solid var(--card-border); color: var(--text-main); padding: 10px 12px; border-radius: 6px; font-size: 1rem; font-family: monospace; outline: none; transition: 0.2s; min-width: 0; }
+    .omni-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 2px var(--accent-glow); }
+    .omni-input:disabled { background: rgba(16, 185, 129, 0.05); color: var(--success); font-weight: bold; border-color: rgba(16, 185, 129, 0.3); }
 
     /* Modal */
     #zoom-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(10px); }
@@ -97,10 +104,11 @@
   </header>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('sim')">1. SIMULATOR</button>
-    <button class="tab-btn" onclick="switchTab('solver')">2. UNIVERSAL SOLVER</button>
+    <button class="tab-btn active" onclick="switchTab('sim')">1. 3D SIMULATOR</button>
+    <button class="tab-btn" onclick="switchTab('solver')">2. OMNI-SOLVER</button>
   </div>
 
+  <!-- TAB 1: INTERACTIVE SIMULATOR -->
   <div id="tab-sim" class="tab-content active">
     <div class="card canvas-grid" style="padding: 10px;">
       <div class="canvas-wrapper" id="three-wrapper">
@@ -160,60 +168,93 @@
     </div>
   </div>
 
+  <!-- TAB 2: OMNIDIRECTIONAL SOLVER -->
   <div id="tab-solver" class="tab-content">
-    
     <div class="card">
-      <div class="solver-header">1. Physical Properties Analysis</div>
-      <div class="solver-desc">Input known machine components (m, k, c) to calculate the complete dynamic behavior.</div>
-      <div class="solver-grid">
-        <div class="input-group"><div class="label-flex"><span>Mass (m) kg</span></div><input type="number" id="fwd-m" class="input-field" value="5.0"></div>
-        <div class="input-group"><div class="label-flex"><span>Stiffness (k) N/m</span></div><input type="number" id="fwd-k" class="input-field" value="2000"></div>
-        <div class="input-group"><div class="label-flex"><span>Damping (c) Ns/m</span></div><input type="number" id="fwd-c" class="input-field" value="25"></div>
+      <div class="solver-header">Omnidirectional Physics Engine</div>
+      <div class="solver-desc">Set any parameter to <strong>KNOW</strong> to input its value, or <strong>FIND</strong> to have the engine calculate it automatically based on available mathematical relationships.</div>
+      
+      <div class="omni-grid" id="omni-engine">
+        <div class="omni-row">
+          <div class="omni-label">Mass (m) <span>kg</span></div>
+          <select class="omni-toggle" data-param="m" onchange="updateOmniUI()">
+            <option value="know">KNOW</option>
+            <option value="find">FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-m" placeholder="Enter value..." oninput="solveOmni()">
+        </div>
+        
+        <div class="omni-row">
+          <div class="omni-label">Stiffness (k) <span>N/m</span></div>
+          <select class="omni-toggle" data-param="k" onchange="updateOmniUI()">
+            <option value="know" selected>KNOW</option>
+            <option value="find">FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-k" placeholder="Enter value..." oninput="solveOmni()">
+        </div>
+        
+        <div class="omni-row">
+          <div class="omni-label">Damping (c) <span>Ns/m</span></div>
+          <select class="omni-toggle" data-param="c" onchange="updateOmniUI()">
+            <option value="know">KNOW</option>
+            <option value="find" selected>FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-c" placeholder="Calculated..." disabled>
+        </div>
+
+        <div class="omni-row">
+          <div class="omni-label">Nat. Freq (&omega;_n) <span>rad/s</span></div>
+          <select class="omni-toggle" data-param="wn" onchange="updateOmniUI()">
+            <option value="know">KNOW</option>
+            <option value="find" selected>FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-wn" placeholder="Calculated..." disabled>
+        </div>
+
+        <div class="omni-row">
+          <div class="omni-label">Crit Damping (c_c) <span>Ns/m</span></div>
+          <select class="omni-toggle" data-param="cc" onchange="updateOmniUI()">
+            <option value="know">KNOW</option>
+            <option value="find" selected>FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-cc" placeholder="Calculated..." disabled>
+        </div>
+
+        <div class="omni-row">
+          <div class="omni-label">Damping Ratio (&zeta;)</div>
+          <select class="omni-toggle" data-param="zeta" onchange="updateOmniUI()">
+            <option value="know">KNOW</option>
+            <option value="find" selected>FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-zeta" placeholder="Calculated..." disabled>
+        </div>
+
+        <div class="omni-row">
+          <div class="omni-label">Damped Freq (&omega;_d) <span>rad/s</span></div>
+          <select class="omni-toggle" data-param="wd" onchange="updateOmniUI()">
+            <option value="know">KNOW</option>
+            <option value="find" selected>FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-wd" placeholder="Calculated..." disabled>
+        </div>
+
+        <div class="omni-row">
+          <div class="omni-label">Log Decrement (&delta;)</div>
+          <select class="omni-toggle" data-param="delta" onchange="updateOmniUI()">
+            <option value="know">KNOW</option>
+            <option value="find" selected>FIND</option>
+          </select>
+          <input type="number" class="omni-input" id="omni-delta" placeholder="Calculated..." disabled>
+        </div>
       </div>
-      <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
-        <div class="metric"><span class="metric-label">Nat. Freq (&omega;_n)</span><span class="metric-value" id="res-fwd-wn">0.00</span></div>
-        <div class="metric"><span class="metric-label">Crit Damping (c_c)</span><span class="metric-value" id="res-fwd-cc">0.00</span></div>
-        <div class="metric" style="border-color:var(--accent-cyan);"><span class="metric-label">Damping Ratio (&zeta;)</span><span class="metric-value" id="res-fwd-zeta" style="color:var(--accent-cyan);">0.00</span></div>
-        <div class="metric"><span class="metric-label">Damped Freq (&omega;_d)</span><span class="metric-value" id="res-fwd-wd">0.00</span></div>
-        <div class="metric"><span class="metric-label">Log Decrement (&delta;)</span><span class="metric-value" id="res-fwd-delta">0.00</span></div>
+      
+      <div style="margin-top: 16px; padding: 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); border-radius: 8px; font-size: 0.8rem; color: var(--warning); display: none;" id="omni-warning">
+        ⚠️ Not enough known variables to solve for all missing parameters. Add more knowns.
       </div>
     </div>
-
-    <div class="card">
-      <div class="solver-header">2. Experimental Data Solver</div>
-      <div class="solver-desc">Calculate hidden c and k properties using displacement peaks across multiple cycles.</div>
-      <div class="input-group"><div class="label-flex"><span>System Mass (m) kg</span></div><input type="number" id="inv-m" class="input-field" value="2.0"></div>
-      <div class="solver-grid">
-        <div class="input-group"><div class="label-flex"><span>Start Peak (X₁) mm</span></div><input type="number" id="inv-x1" class="input-field" value="50"></div>
-        <div class="input-group"><div class="label-flex"><span>End Peak (Xₙ) mm</span></div><input type="number" id="inv-xn" class="input-field" value="12"></div>
-        <div class="input-group"><div class="label-flex"><span>Number of Cycles (n)</span></div><input type="number" id="inv-n" class="input-field" value="3"></div>
-        <div class="input-group"><div class="label-flex"><span>Time for n cycles (t) s</span></div><input type="number" id="inv-t" class="input-field" value="1.5"></div>
-      </div>
-      <div class="metrics-grid">
-        <div class="metric"><span class="metric-label">Damping Ratio (&zeta;)</span><span class="metric-value" id="res-inv-zeta">0.00</span></div>
-        <div class="metric"><span class="metric-label">Nat. Freq (&omega;_n)</span><span class="metric-value" id="res-inv-wn">0.00</span></div>
-        <div class="metric" style="border-color:var(--success);"><span class="metric-label">Stiffness (k) N/m</span><span class="metric-value" id="res-inv-k" style="color:var(--success);">0.0</span></div>
-        <div class="metric" style="border-color:var(--success);"><span class="metric-label">Damping (c) Ns/m</span><span class="metric-value" id="res-inv-c" style="color:var(--success);">0.0</span></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="solver-header">3. Design Targeting</div>
-      <div class="solver-desc">Calculate required mass or stiffness to achieve a specific target Natural Frequency (f_n in Hz).</div>
-      <div class="input-group"><div class="label-flex"><span>Target Frequency (f_n) Hz</span></div><input type="number" id="tgt-fn" class="input-field" value="5.0"></div>
-      <select id="tgt-mode" class="input-field" style="margin-bottom: 12px; font-weight: bold; color: var(--accent-cyan);">
-        <option value="find-k">I know Mass (m) -> Find k</option>
-        <option value="find-m">I know Stiffness (k) -> Find m</option>
-      </select>
-      <div class="input-group"><div class="label-flex"><span id="tgt-val-label">Known Mass (m) kg</span></div><input type="number" id="tgt-val" class="input-field" value="10"></div>
-      <div class="metric" style="text-align: center; border-color: var(--accent-cyan); background: rgba(14, 165, 233, 0.05); padding: 20px;">
-        <span class="metric-label" id="res-tgt-label">Required Stiffness (k)</span>
-        <span class="metric-value" id="res-tgt-ans" style="font-size: 1.8rem; color: var(--accent-cyan);">0.00</span>
-      </div>
-    </div>
-
   </div>
 
+  <!-- Zoom Modal -->
   <div id="zoom-modal" class="hidden">
     <div class="modal-content">
       <div class="modal-header"><h2 id="modal-title">Analysis View</h2><button id="modal-close">CLOSE</button></div>
@@ -237,49 +278,6 @@
       document.getElementById('tab-' + tabId).classList.add('active');
       if (tabId === 'sim') { resizeThreeJS(); resizeGraph(); }
     }
-
-    // --- UNIVERSAL SOLVER MATH ---
-    function calcForward() {
-      const m = parseFloat(document.getElementById('fwd-m').value) || 0;
-      const k = parseFloat(document.getElementById('fwd-k').value) || 0;
-      const c = parseFloat(document.getElementById('fwd-c').value) || 0;
-      if (m <= 0 || k <= 0) return;
-      const wn = Math.sqrt(k / m), cc = 2 * Math.sqrt(k * m), zeta = c / cc;
-      document.getElementById('res-fwd-wn').textContent = wn.toFixed(2);
-      document.getElementById('res-fwd-cc').textContent = cc.toFixed(2);
-      document.getElementById('res-fwd-zeta').textContent = zeta.toFixed(4);
-      if (zeta < 1) {
-        document.getElementById('res-fwd-wd').textContent = (wn * Math.sqrt(1 - zeta * zeta)).toFixed(2);
-        document.getElementById('res-fwd-delta').textContent = ((2 * Math.PI * zeta) / Math.sqrt(1 - zeta * zeta)).toFixed(4);
-      } else {
-        document.getElementById('res-fwd-wd').textContent = "0.00";
-        document.getElementById('res-fwd-delta').textContent = "N/A";
-      }
-    }
-    ['fwd-m', 'fwd-k', 'fwd-c'].forEach(id => document.getElementById(id).addEventListener('input', calcForward)); calcForward();
-
-    function calcInverse() {
-      const m = parseFloat(document.getElementById('inv-m').value) || 0, x1 = parseFloat(document.getElementById('inv-x1').value) || 0, xn = parseFloat(document.getElementById('inv-xn').value) || 0, n = parseFloat(document.getElementById('inv-n').value) || 0, t = parseFloat(document.getElementById('inv-t').value) || 0;
-      if (m <= 0 || x1 <= xn || xn <= 0 || n <= 0 || t <= 0) return;
-      const delta = (1 / n) * Math.log(x1 / xn), zeta = delta / Math.sqrt((4 * Math.PI * Math.PI) + (delta * delta)), wd = (2 * Math.PI) / (t / n), wn = wd / Math.sqrt(1 - zeta * zeta);
-      document.getElementById('res-inv-zeta').textContent = zeta.toFixed(4); document.getElementById('res-inv-wn').textContent = wn.toFixed(2);
-      document.getElementById('res-inv-k').textContent = (m * wn * wn).toFixed(1); document.getElementById('res-inv-c').textContent = (zeta * 2 * m * wn).toFixed(2);
-    }
-    ['inv-m', 'inv-x1', 'inv-xn', 'inv-n', 'inv-t'].forEach(id => document.getElementById(id).addEventListener('input', calcInverse)); calcInverse();
-
-    const tgtMode = document.getElementById('tgt-mode'), tgtValLabel = document.getElementById('tgt-val-label'), tgtAnsLabel = document.getElementById('res-tgt-label');
-    tgtMode.addEventListener('change', (e) => {
-      tgtValLabel.textContent = e.target.value === 'find-k' ? "Known Mass (m) kg" : "Known Stiffness (k) N/m";
-      tgtAnsLabel.textContent = e.target.value === 'find-k' ? "Required Stiffness (k)" : "Required Mass (m)";
-      calcTarget();
-    });
-    function calcTarget() {
-      const fn = parseFloat(document.getElementById('tgt-fn').value) || 0, val = parseFloat(document.getElementById('tgt-val').value) || 0;
-      if (fn <= 0 || val <= 0) return;
-      const wn = fn * 2 * Math.PI;
-      document.getElementById('res-tgt-ans').textContent = (tgtMode.value === 'find-k' ? (val * wn * wn).toFixed(2) + " N/m" : (val / (wn * wn)).toFixed(2) + " kg");
-    }
-    ['tgt-fn', 'tgt-val'].forEach(id => document.getElementById(id).addEventListener('input', calcTarget)); calcTarget();
 
     // --- 3D SIMULATOR LOGIC ---
     let m_sim = 1.0, k_sim = 100, c_sim = 2.0, x0_sim = 0.06, t_sim = 0, isRunning = false, graphData = [];
@@ -321,7 +319,7 @@
     const damperGroup = new THREE.Group(); damperGroup.position.set(1.5, 4.25, 0); scene.add(damperGroup);
     const glassTube = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3.5, 32, 1, true), glassMat);
     glassTube.position.y = -1.75; damperGroup.add(glassTube);
-    const fluidVolume = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 3.4, 32), fluidMat);
+    const fluidVolume = new Mesh(new THREE.CylinderGeometry(0.48, 0.48, 3.4, 32), fluidMat);
     fluidVolume.position.y = -1.75; damperGroup.add(fluidVolume);
     const pistonRod = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 5, 16), chromeMat);
     pistonRod.castShadow = true; scene.add(pistonRod);
@@ -444,6 +442,83 @@
     }
     
     updateSimCalculations(); render3D(x0_sim); loop();
+
+    // --- OMNIDIRECTIONAL SOLVER LOGIC ---
+    function updateOmniUI() {
+      const toggles = document.querySelectorAll('.omni-toggle');
+      toggles.forEach(t => {
+        const param = t.getAttribute('data-param');
+        const input = document.getElementById(`omni-${param}`);
+        if (t.value === 'find') {
+          input.disabled = true;
+          input.value = '';
+          input.placeholder = 'Calculated...';
+        } else {
+          input.disabled = false;
+          input.placeholder = 'Enter value...';
+        }
+      });
+      solveOmni();
+    }
+
+    function solveOmni() {
+      let v = {};
+      const toggles = document.querySelectorAll('.omni-toggle');
+      toggles.forEach(t => {
+        const param = t.getAttribute('data-param');
+        if (t.value === 'know') {
+          const val = parseFloat(document.getElementById(`omni-${param}`).value);
+          if (!isNaN(val)) v[param] = val;
+        }
+      });
+
+      let changed = true;
+      let loopCount = 0;
+      
+      while (changed && loopCount < 20) {
+        changed = false;
+        loopCount++;
+
+        if (v.k !== undefined && v.m !== undefined && v.wn === undefined) { v.wn = Math.sqrt(v.k/v.m); changed = true; }
+        if (v.wn !== undefined && v.m !== undefined && v.k === undefined) { v.k = v.m * v.wn * v.wn; changed = true; }
+        if (v.wn !== undefined && v.k !== undefined && v.m === undefined) { v.m = v.k / (v.wn * v.wn); changed = true; }
+
+        if (v.k !== undefined && v.m !== undefined && v.cc === undefined) { v.cc = 2 * Math.sqrt(v.k*v.m); changed = true; }
+        if (v.cc !== undefined && v.m !== undefined && v.k === undefined) { v.k = (v.cc * v.cc) / (4 * v.m); changed = true; }
+        if (v.cc !== undefined && v.k !== undefined && v.m === undefined) { v.m = (v.cc * v.cc) / (4 * v.k); changed = true; }
+
+        if (v.c !== undefined && v.cc !== undefined && v.zeta === undefined) { v.zeta = v.c / v.cc; changed = true; }
+        if (v.zeta !== undefined && v.cc !== undefined && v.c === undefined) { v.c = v.zeta * v.cc; changed = true; }
+        if (v.c !== undefined && v.zeta !== undefined && v.cc === undefined && v.zeta > 0) { v.cc = v.c / v.zeta; changed = true; }
+
+        if (v.wn !== undefined && v.zeta !== undefined && v.wd === undefined && v.zeta < 1) { v.wd = v.wn * Math.sqrt(1 - v.zeta*v.zeta); changed = true; }
+        if (v.wd !== undefined && v.zeta !== undefined && v.wn === undefined && v.zeta < 1) { v.wn = v.wd / Math.sqrt(1 - v.zeta*v.zeta); changed = true; }
+        if (v.wd !== undefined && v.wn !== undefined && v.zeta === undefined && v.wn > v.wd) { v.zeta = Math.sqrt(1 - Math.pow(v.wd/v.wn, 2)); changed = true; }
+
+        if (v.delta !== undefined && v.zeta === undefined) { v.zeta = v.delta / Math.sqrt(4*Math.PI*Math.PI + v.delta*v.delta); changed = true; }
+        if (v.zeta !== undefined && v.delta === undefined && v.zeta < 1) { v.delta = (2*Math.PI*v.zeta) / Math.sqrt(1 - v.zeta*v.zeta); changed = true; }
+      }
+
+      let missingData = false;
+      toggles.forEach(t => {
+        if (t.value === 'find') {
+          const param = t.getAttribute('data-param');
+          const input = document.getElementById(`omni-${param}`);
+          if (v[param] !== undefined) {
+            input.value = (v[param] < 0.01 || v[param] > 10000) ? v[param].toExponential(4) : v[param].toFixed(4);
+          } else {
+            input.value = '';
+            missingData = true;
+          }
+        }
+      });
+
+      const hasInputs = Object.keys(v).length > 0;
+      document.getElementById('omni-warning').style.display = (missingData && hasInputs) ? 'block' : 'none';
+    }
+
+    // Initialize UI on load
+    updateOmniUI();
   </script>
 </body>
 </html>
